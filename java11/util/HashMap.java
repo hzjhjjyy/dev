@@ -330,6 +330,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     static final int hash(Object key) {
         int h;
+        // 大致为计算出key的hashcode后，无符号右移16位（等于把原高16位移到了低16位，高16位补0）后
+        // 与hashcode做亦或运算（等于hashcode中高16位与0亦或，低16位与原高16位亦或）
+        // 0101 0101 1011 1101 1101 1100 0110 0001 - 原
+        // 0000 0000 0000 0000 0101 0101 1011 1101 - >>>16
+        // 0101 0101 1011 1101 1000 1001 1101 1100 - ^（亦或）
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
 
@@ -391,11 +396,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient Set<Map.Entry<K,V>> entrySet;
 
     /**
+     * 键值对数量
      * The number of key-value mappings contained in this map.
      */
     transient int size;
 
     /**
+     * hashmap结构变化时会+1，就是对key进行增删时就会+1
+     * 还用于在循环时用于判断是否存在结构变化，若有变动则快速失败
      * The number of times this HashMap has been structurally modified
      * Structural modifications are those that change the number of mappings in
      * the HashMap or otherwise modify its internal structure (e.g.,
@@ -586,6 +594,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 默认put方法
+     * 若返回为null，则本来不存在此key；否则会替换原key的value并返回原value
+     *
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old
      * value is replaced.
@@ -607,6 +618,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param hash hash for key
      * @param key the key
      * @param value the value to put
+     * true时不替换同key的value，否则替换
      * @param onlyIfAbsent if true, don't change existing value
      * @param evict if false, the table is in creation mode.
      * @return previous value, or null if none
