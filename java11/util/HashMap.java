@@ -33,7 +33,7 @@ import jdk.internal.misc.SharedSecrets;
  *
  * capacity是初始化大小
  * factor是描述允许存在的元素总量的百分比
- *  且在get时会判断其大小是否超过，超过时需要进行rehash扩容后才能返回
+ *  且在get时会判断其大小是否超过，超过时需要进行resize扩容后才能返回
  *  且每次扩容约为原始的两倍
  * <p>An instance of {@code HashMap} has two parameters that affect its
  * performance: <i>initial capacity</i> and <i>load factor</i>.  The
@@ -223,11 +223,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
 
     /**
+     * 初始数组大小16，且需为2的指数倍大小
      * The default initial capacity - MUST be a power of two.
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
     /**
+     * 数组最大大小1073741824，不能大于此大小
      * The maximum capacity, used if a higher value is implicitly specified
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1<<30.
@@ -235,11 +237,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
+     * 默认负载因子0.75
      * The load factor used when none specified in constructor.
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /**
+     * 同hash的链表树化阈值为8
      * The bin count threshold for using a tree rather than list for a
      * bin.  Bins are converted to trees when adding an element to a
      * bin with at least this many nodes. The value must be greater
@@ -250,6 +254,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int TREEIFY_THRESHOLD = 8;
 
     /**
+     * 当在resize时，同hash的树退化阈值为6，意为树中小于等于6个节点时就会退出为链表
      * The bin count threshold for untreeifying a (split) bin during a
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
      * most 6 to mesh with shrinkage detection under removal.
@@ -257,6 +262,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int UNTREEIFY_THRESHOLD = 6;
 
     /**
+     * 树化阈值包括数组大小最小为64个
      * The smallest table capacity for which bins may be treeified.
      * (Otherwise the table is resized if too many nodes in a bin.)
      * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
