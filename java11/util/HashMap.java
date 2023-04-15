@@ -146,6 +146,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * normal use are not overpopulated, checking for existence of
      * tree bins may be delayed in the course of table methods.
      *
+     * 为了让进入同个桶的对象查找效率达到O(logn)，会使用红黑树构建同个桶中的对象
+     * 默认使用每个对象的hashcode排序，但是实现了Comparable接口，且其泛型为本身
+     * 的话，则会优先使用其compare方法比较排序
      * Tree bins (i.e., bins whose elements are all TreeNodes) are
      * ordered primarily by hashCode, but in the case of ties, if two
      * elements are of the same "class C implements Comparable<C>",
@@ -254,7 +257,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int TREEIFY_THRESHOLD = 8;
 
     /**
-     * 当在resize时，同hash的树退化阈值为6，意为树中小于等于6个节点时就会退出为链表
+     * 当在resize时，同hash的树退化阈值为6，意为树中小于等于6个节点时就会退化为链表
      * The bin count threshold for untreeifying a (split) bin during a
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
      * most 6 to mesh with shrinkage detection under removal.
@@ -292,6 +295,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         public final V getValue()      { return value; }
         public final String toString() { return key + "=" + value; }
 
+        // key和value的自身hashcode值亦或
         public final int hashCode() {
             return Objects.hashCode(key) ^ Objects.hashCode(value);
         }
@@ -302,7 +306,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             return oldValue;
         }
 
-        // 同为Map.Entry类型时，key和value同等才为true
+        // 同为Map.Entry类型时，key和value各自的equals方法都为true时才为true
         public final boolean equals(Object o) {
             if (o == this)
                 return true;
@@ -345,6 +349,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 判断一个对象是否实现了Comparable接口
+     * 若 否 返回Null
+     * 否则继续判断其实现的Comparable<T>的泛型T是否为自身
+     * 若是才返回自身Class
      * Returns x's Class if it is of the form "class C implements
      * Comparable<C>", else null.
      */
