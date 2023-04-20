@@ -147,8 +147,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * tree bins may be delayed in the course of table methods.
      *
      * 为了让进入同个桶的对象查找效率达到O(logn)，会使用红黑树构建同个桶中的对象
-     * 默认使用每个对象的hashcode排序，但是实现了Comparable接口，且其泛型为本身
-     * 的话，则会优先使用其compare方法比较排序
+     * 默认使用每个对象的hashcode排序，如果实现了Comparable接口，且其泛型为本身
+     * 的话，则会优先使用其compareTo方法比较排序
      * Tree bins (i.e., bins whose elements are all TreeNodes) are
      * ordered primarily by hashCode, but in the case of ties, if two
      * elements are of the same "class C implements Comparable<C>",
@@ -386,6 +386,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 
      * Returns a power of two size for the given target capacity.
      */
     static final int tableSizeFor(int cap) {
