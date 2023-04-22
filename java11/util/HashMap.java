@@ -386,10 +386,25 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * 
+     * 获取大于或等于给定参数的2次幂数
      * Returns a power of two size for the given target capacity.
      */
     static final int tableSizeFor(int cap) {
+        /* Integer.numberOfLeadingZeros用于返回基于二进制的int高位有几个0
+         * 此处为什么用cap-1，为了防止当cap为2次幂数时会让移位后的数比cap大一倍
+         * 例子说明：
+         * 如 cap=1000（0011 1110 1000）
+         *    cap-1=999（0011 1110 0111）
+         * numberOfLeadingZeros会分别返回22，这时没问题
+         * 但若 cap=2048（1000 0000 0000）
+         *      cap-1=2047（0111 1111 1111）
+         * numberOfLeadingZeros会分别返回20和21
+         * 以-1做位移位，分别为
+         * 4095（1111 1111 1111）
+         * 2047（0111 1111 1111）
+         * 
+         * 最后需要n+1，是因为-1做无符号右移后的结果总是一个奇数，所以需要+1得出偶数（2次幂数一定是个偶数）
+         */
         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
         return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
     }
