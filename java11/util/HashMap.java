@@ -21,7 +21,7 @@ import jdk.internal.misc.SharedSecrets;
  * the order of the map; in particular, it does not guarantee that the order
  * will remain constant over time.
  * 
- * 初始化的数组不能太大或太小，因为循环需要访问其数组及其所有元素
+ * 初始化的数组不能太大或太小，因为需要循环访问其数组及其所有元素
  * <p>This implementation provides constant-time performance for the basic
  * operations ({@code get} and {@code put}), assuming the hash function
  * disperses the elements properly among the buckets.  Iteration over
@@ -33,7 +33,7 @@ import jdk.internal.misc.SharedSecrets;
  *
  * capacity是初始化大小
  * factor是描述允许存在的元素总量的百分比
- *  且在get时会判断其大小是否超过，超过时需要进行resize扩容后才能返回
+ *  且在get时会判断其大小是否超过，超过时需要进行rehash扩容后才能返回
  *  且每次扩容约为原始的两倍
  * <p>An instance of {@code HashMap} has two parameters that affect its
  * performance: <i>initial capacity</i> and <i>load factor</i>.  The
