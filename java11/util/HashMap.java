@@ -450,8 +450,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient int modCount;
 
     /**
-     * 数组大小阈值
-     * capacity用于初始化map时的值，经过2次幂计算后的实际大小值
+     * 所有键值对数量阈值大小
+     * 数值为数组大小capacity*负载因子loadFactor
+     * 但是在未对hashmap添加数据时，也就是new hashmap时，其值为capacity的2次幂大小
+     * 该值只有在resize时才会进行更新
      * The next size value at which to resize (capacity * load factor).
      *
      * @serial
@@ -463,7 +465,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     int threshold;
 
     /**
-     * 负载因子
+     * 负载因子，用于控制当前数组是否需要扩容
      * The load factor for the hash table.
      *
      * @serial
@@ -542,11 +544,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * true (relayed to method afterNodeInsertion).
      */
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
+        // 获取给定m的键值对数量大小
         int s = m.size();
         if (s > 0) {
             // 如果当前数组列表为Null，就是用于初始化
             if (table == null) { // pre-size
-                // 计算在当前负载因子下，给定的m的最大负载是多少
+                // 计算在当前负载因子下，给定的m的最大数组负载是多少
                 float ft = ((float)s / loadFactor) + 1.0F;
                 int t = ((ft < (float)MAXIMUM_CAPACITY) ?
                          (int)ft : MAXIMUM_CAPACITY);
@@ -554,9 +557,10 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 if (t > threshold)
                     threshold = tableSizeFor(t);
             }
-            // 如果当前map table不为空且大于阈值大小
+            // 如果当前map table不为空且大于数据大小阈值，需要进行resize
             else if (s > threshold)
                 resize();
+            // 对m中键值对逐个添加到当前map中
             for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
                 K key = e.getKey();
                 V value = e.getValue();
@@ -566,6 +570,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 返回当前map的所有键值对数量
      * Returns the number of key-value mappings in this map.
      *
      * @return the number of key-value mappings in this map
@@ -575,6 +580,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 使用size是否等于0判断当前map是否为空
      * Returns {@code true} if this map contains no key-value mappings.
      *
      * @return {@code true} if this map contains no key-value mappings
@@ -647,7 +653,6 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * 默认put方法
      * 若返回为null，则本来不存在此key；否则会替换原key的value并返回原value
-     *
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old
      * value is replaced.
