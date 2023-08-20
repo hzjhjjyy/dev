@@ -416,7 +416,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * 数组列表
-     * new HashMap时其实并不会初始化此值，意味着当前map其实还没有一个键值对列表
+     * new HashMap时其实并不会初始化此值，意味着当前map其实还没有一个键值对列表，为Null
      * 唯有当put数据时才会进行初始化，且其大小永远都是2次幂大小
      * The table, initialized on first use, and resized as
      * necessary. When allocated, length is always a power of two.
@@ -452,7 +452,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * 所有键值对数量阈值大小
      * 数值为数组大小capacity*负载因子loadFactor
-     * 但是在未对hashmap添加数据时，也就是new hashmap时，其值为capacity的2次幂大小
+     * 但是在未对hashmap添加数据时，也就是new hashmap时，其值为capacity的2次幂大小；为0或者等于capacity默认值16
      * 该值只有在resize时才会进行更新
      * The next size value at which to resize (capacity * load factor).
      *
@@ -557,7 +557,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 if (t > threshold)
                     threshold = tableSizeFor(t);
             }
-            // 如果当前map table不为空且大于数据大小阈值，需要进行resize
+            // 如果当前map table不为空且给定map大于当前数据大小阈值，需要进行resize
             else if (s > threshold)
                 resize();
             // 对m中键值对逐个添加到当前map中
@@ -676,6 +676,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param value the value to put
      * true时不替换同key的value，否则替换
      * @param onlyIfAbsent if true, don't change existing value
+     * false时代表当前map处于初始化阶段
      * @param evict if false, the table is in creation mode.
      * @return previous value, or null if none
      */
@@ -724,6 +725,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 初始化或倍化数组大小
      * Initializes or doubles table size.  If null, allocates in
      * accord with initial capacity target held in field threshold.
      * Otherwise, because we are using power-of-two expansion, the
@@ -734,29 +736,39 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final Node<K,V>[] resize() {
         Node<K,V>[] oldTab = table;
+        // map初始化时oldCap等于0
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
+        // map初始化时oldThr等于0
         int oldThr = threshold;
         int newCap, newThr = 0;
+        // 旧有map —— *1
         if (oldCap > 0) {
+            // *1.1
             if (oldCap >= MAXIMUM_CAPACITY) {
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
+            // 旧有capacity扩大一倍 —— *1.2
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                      oldCap >= DEFAULT_INITIAL_CAPACITY)
+                // 旧有threshold也扩大一倍
                 newThr = oldThr << 1; // double threshold
         }
+        // new HashMap(initialCapacity)指定了初始化大小的情况 —— *2
         else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
+        // 默认new HashMap，会使用默认值；也就是capacity=16，threshold=12 —— *3
         else {               // zero initial threshold signifies using defaults
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
+        // *1.2 和 *2会进来这里
         if (newThr == 0) {
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                       (int)ft : Integer.MAX_VALUE);
         }
+        // 更新当前threshold
         threshold = newThr;
         @SuppressWarnings({"rawtypes","unchecked"})
         Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
