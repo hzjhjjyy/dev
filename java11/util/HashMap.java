@@ -21,7 +21,10 @@ import jdk.internal.misc.SharedSecrets;
  * the order of the map; in particular, it does not guarantee that the order
  * will remain constant over time.
  * 
- * 初始化的数组不能太大或太小，因为需要循环访问其数组及其所有元素
+ * 初始化的数组不能太大
+ * 当在“遍历”map的场景下因为需要循环访问其数组及其所有键值对时就会对应增加耗时
+ * capacity指的是数组大小
+ * size指的是所有键值对
  * <p>This implementation provides constant-time performance for the basic
  * operations ({@code get} and {@code put}), assuming the hash function
  * disperses the elements properly among the buckets.  Iteration over
@@ -226,7 +229,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
 
     /**
-     * 初始数组大小16，且需为2的指数倍大小
+     * 默认初始数组大小16，且需为2的指数倍大小
      * The default initial capacity - MUST be a power of two.
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
@@ -246,7 +249,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /**
-     * 同hash的链表树化阈值为8
+     * 当put元素时，同hash的链表树化阈值为8时，进行树化
      * The bin count threshold for using a tree rather than list for a
      * bin.  Bins are converted to trees when adding an element to a
      * bin with at least this many nodes. The value must be greater
@@ -413,6 +416,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * 数组列表
+     * new HashMap时其实并不会初始化此值，意味着当前map其实还没有一个键值对列表
+     * 唯有当put数据时才会进行初始化，且其大小永远都是2次幂大小
      * The table, initialized on first use, and resized as
      * necessary. When allocated, length is always a power of two.
      * (We also tolerate length zero in some operations to allow
@@ -428,7 +433,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient Set<Map.Entry<K,V>> entrySet;
 
     /**
-     * 键值对数量
+     * 所有键值对数量
      * The number of key-value mappings contained in this map.
      */
     transient int size;
@@ -445,6 +450,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient int modCount;
 
     /**
+     * 数组大小阈值
+     * capacity用于初始化map时的值，经过2次幂计算后的实际大小值
      * The next size value at which to resize (capacity * load factor).
      *
      * @serial
@@ -456,6 +463,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     int threshold;
 
     /**
+     * 负载因子
      * The load factor for the hash table.
      *
      * @serial
@@ -465,6 +473,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Public operations -------------- */
 
     /**
+     * 指定数组初始化大小及负载因子构造方法
      * Constructs an empty {@code HashMap} with the specified initial
      * capacity and load factor.
      *
@@ -483,10 +492,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             throw new IllegalArgumentException("Illegal load factor: " +
                                                loadFactor);
         this.loadFactor = loadFactor;
+        // 根据给出的初始化大小计算2次幂
         this.threshold = tableSizeFor(initialCapacity);
     }
 
     /**
+     * 指定数组初始化大小构造方法
      * Constructs an empty {@code HashMap} with the specified initial
      * capacity and the default load factor (0.75).
      *
@@ -498,6 +509,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 默认构造方法
      * Constructs an empty {@code HashMap} with the default initial capacity
      * (16) and the default load factor (0.75).
      */
@@ -520,22 +532,29 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 构造方法和putAll的实际实现方法，用于批量添加键值对
      * Implements Map.putAll and Map constructor.
      *
      * @param m the map
+     * 是否替换同key已有键值对
+     * 初始化map时为false，putAll时为true
      * @param evict false when initially constructing this map, else
      * true (relayed to method afterNodeInsertion).
      */
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         int s = m.size();
         if (s > 0) {
+            // 如果当前数组列表为Null，就是用于初始化
             if (table == null) { // pre-size
+                // 计算在当前负载因子下，给定的m的最大负载是多少
                 float ft = ((float)s / loadFactor) + 1.0F;
                 int t = ((ft < (float)MAXIMUM_CAPACITY) ?
                          (int)ft : MAXIMUM_CAPACITY);
+                // 如果结果大于负载阈值，则根据计算结果重新计算2次幂后的大小         
                 if (t > threshold)
                     threshold = tableSizeFor(t);
             }
+            // 如果当前map table不为空且大于阈值大小
             else if (s > threshold)
                 resize();
             for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
@@ -808,6 +827,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 使用指定map增加键值对以及替换当前map中的key相同的键值对
      * Copies all of the mappings from the specified map to this map.
      * These mappings will replace any mappings that this map had for
      * any of the keys currently in the specified map.
