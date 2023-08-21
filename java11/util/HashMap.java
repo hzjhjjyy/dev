@@ -762,7 +762,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
-        // *1.2 和 *2会进来这里
+        // *1.2
+        // 原因是loadFactor可能会大于1，那么存在newThr = oldThr << 1 oldThr扩大两倍后变成0的情况，如10000000000000...
+        // *2
         if (newThr == 0) {
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
