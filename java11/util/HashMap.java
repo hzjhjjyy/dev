@@ -466,6 +466,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /**
      * 负载因子，用于控制当前数组是否需要扩容
+     * 可以大于1
      * The load factor for the hash table.
      *
      * @serial
@@ -773,23 +774,45 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         // 更新当前threshold
         threshold = newThr;
         @SuppressWarnings({"rawtypes","unchecked"})
+        // 以新的capacity建立一个数组
         Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+        // 马上更新当前map的数组引用
         table = newTab;
+        // 数据搬迁，把该节点下关联的所有元素进行分拆，安排到不同的位置上（可能）
         if (oldTab != null) {
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
+                    // 旧数组元素置null
                     oldTab[j] = null;
+                    // 该数组索引下只有该节点，没有下一节点
                     if (e.next == null)
+                        // 该元素直接跟新的数组长度-1取余取新的索引位置
                         newTab[e.hash & (newCap - 1)] = e;
+                    // 若该Node是一个TreeNode
                     else if (e instanceof TreeNode)
+                        // 对TreeNode进行拆分
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                    // 有下一节点且为链表，对链表进行拆分
                     else { // preserve order
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
                         do {
+                            // 下一节点
                             next = e.next;
+                            /** 
+                             * 先举例：
+                             * oldCap 512    10 0000 0000
+                             * newCap 1024  100 0000 0000
+                             * oldCap-1 511   1 1111 1111
+                             * newCap-1 1023 11 1111 1111
+                             * 可以看到newCap-1的最高位会参与到resize后的运算中，用于计算index位;
+                             * 那么同时也可以看到这newCap-1最高位1其实也就是当前oldCap的最高位1
+                             * 所以直接用节点hash和旧capacity做与运算可以提前确认节点在基于与newCap-1做与运算时节点最高位是否有用
+                             */
+                            // 以下为尾插法
+                            // 若无用，也就是hash的对应高位为0                         
                             if ((e.hash & oldCap) == 0) {
                                 if (loTail == null)
                                     loHead = e;
@@ -797,6 +820,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                                     loTail.next = e;
                                 loTail = e;
                             }
+                            // 若有用，也就是hash的对应高位为1
                             else {
                                 if (hiTail == null)
                                     hiHead = e;
