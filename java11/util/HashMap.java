@@ -795,6 +795,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     // 有下一节点且为链表，对链表进行拆分
                     else { // preserve order
+                        // 只需要两条链是因为在新数组中的索引位置不是原位就是原位*2
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
@@ -809,10 +810,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                              * newCap-1 1023 11 1111 1111
                              * 可以看到newCap-1的最高位会参与到resize后的运算中，用于计算index位;
                              * 那么同时也可以看到这newCap-1最高位1其实也就是当前oldCap的最高位1
-                             * 所以直接用节点hash和旧capacity做与运算可以提前确认节点在基于与newCap-1做与运算时节点最高位是否有用
+                             * 所以直接用节点hash和旧capacity做与运算可以提前确认节点在基于与newCap-1做与运算时节点最高位是否有用，
+                             * 有用就放到hi链中，其实也就是在数组中的位置增大一倍
                              */
                             // 以下为尾插法
-                            // 若无用，也就是hash的对应高位为0                         
+                            // 若无用，也就是hash的对应高位为0
                             if ((e.hash & oldCap) == 0) {
                                 if (loTail == null)
                                     loHead = e;
@@ -829,18 +831,22 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                                 hiTail = e;
                             }
                         } while ((e = next) != null);
+                        // 链表或树分拆到hi、lo链完毕
                         if (loTail != null) {
                             loTail.next = null;
+                            // lo链赋值到原索引位置
                             newTab[j] = loHead;
                         }
                         if (hiTail != null) {
                             hiTail.next = null;
+                            // hi链赋值到原索引位置+旧数组长度，也就是多一倍距离
                             newTab[j + oldCap] = hiHead;
                         }
                     }
                 }
             }
         }
+        // 最后返回新数组
         return newTab;
     }
 
