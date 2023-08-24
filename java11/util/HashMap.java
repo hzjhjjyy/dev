@@ -688,14 +688,18 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if ((tab = table) == null || (n = tab.length) == 0)
             // map table初始化
             n = (tab = resize()).length;
-        // 计算新增key的hash后的数组位置中是否存在Node
+        // 计算新增key的hash后的数组索引位置中是否存在Node
         if ((p = tab[i = (n - 1) & hash]) == null)
-            // 不存在则根据新增key新建一个Node
+            // 不存在则根据新增key新建一个Node，并放置数组上
             tab[i] = newNode(hash, key, value, null);
+        // 索引位置上已存在Node
         else {
             Node<K,V> e; K k;
+            // 若已有Node的hash和新增Node的hash一致
             if (p.hash == hash &&
+                // 且（已有Node的key与新增Node的key==或者equals）
                 ((k = p.key) == key || (key != null && key.equals(k))))
+                // 用于后续替换value
                 e = p;
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
