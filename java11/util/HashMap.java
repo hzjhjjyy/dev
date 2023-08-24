@@ -686,8 +686,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         // 临时变量
         Node<K,V>[] tab; Node<K,V> p; int n, i;
         if ((tab = table) == null || (n = tab.length) == 0)
+            // map table初始化
             n = (tab = resize()).length;
+        // 计算新增key的hash后的数组位置中是否存在Node
         if ((p = tab[i = (n - 1) & hash]) == null)
+            // 不存在则根据新增key新建一个Node
             tab[i] = newNode(hash, key, value, null);
         else {
             Node<K,V> e; K k;
@@ -737,7 +740,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final Node<K,V>[] resize() {
         Node<K,V>[] oldTab = table;
-        // map初始化时oldCap等于0
+        // map初始化时oldCap等于0，因为table等于null
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
         // map初始化时oldThr等于0
         int oldThr = threshold;
@@ -810,8 +813,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                              * newCap-1 1023 11 1111 1111
                              * 可以看到newCap-1的最高位会参与到resize后的运算中，用于计算index位;
                              * 那么同时也可以看到这newCap-1最高位1其实也就是当前oldCap的最高位1
-                             * 所以直接用节点hash和旧capacity做与运算可以提前确认节点在基于与newCap-1做与运算时节点最高位是否有用，
-                             * 有用就放到hi链中，其实也就是在数组中的位置增大一倍
+                             * 所以直接用节点hash和旧capacity做与运算可以提前确认节点在基于与newCap-1做与运算时节点最高位是否有用
                              */
                             // 以下为尾插法
                             // 若无用，也就是hash的对应高位为0
@@ -839,7 +841,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         }
                         if (hiTail != null) {
                             hiTail.next = null;
-                            // hi链赋值到原索引位置+旧数组长度，也就是多一倍距离
+                            // hi链赋值到原索引位置+旧数组长度
+                            // 在上面例子中可以发现新旧capacity增大一倍后与hash与运算的差值就在于高位的1，也就是+上oldCap即可
                             newTab[j + oldCap] = hiHead;
                         }
                     }
@@ -1900,6 +1903,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * classes, and HashSet.
      */
 
+    // 创建普通Node
     // Create a regular (non-tree) node
     Node<K,V> newNode(int hash, K key, V value, Node<K,V> next) {
         return new Node<>(hash, key, value, next);
