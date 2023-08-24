@@ -695,16 +695,22 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         // 索引位置上已存在Node
         else {
             Node<K,V> e; K k;
+            // 同节点
             // 若已有Node的hash和新增Node的hash一致
             if (p.hash == hash &&
                 // 且（已有Node的key与新增Node的key==或者equals）
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 // 用于后续替换value
                 e = p;
+            // 不同节点，且是TreeNode
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+            // 不同节点，普通Node
             else {
+                // 循环，为了判断同hash下共有多少节点，用于判断是否达到树化阈值
                 for (int binCount = 0; ; ++binCount) {
+                    // 首先获取next节点
+                    // 为null的话意为链表
                     if ((e = p.next) == null) {
                         p.next = newNode(hash, key, value, null);
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
@@ -721,14 +727,18 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 V oldValue = e.value;
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
+                // 数据访问后供继承函数调用
                 afterNodeAccess(e);
                 return oldValue;
             }
         }
+        // map结构变化次数+1
         ++modCount;
         if (++size > threshold)
             resize();
+        // 数据插入后供继承函数调用
         afterNodeInsertion(evict);
+        // 返回null意为该索引位置上本不存在节点
         return null;
     }
 
