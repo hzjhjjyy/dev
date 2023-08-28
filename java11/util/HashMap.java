@@ -591,6 +591,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 返回给定的key的value，如果key不存在则返回null，当然value也有可能会是null，可以用containsKey来判断是否存在key
      * Returns the value to which the specified key is mapped,
      * or {@code null} if this map contains no mapping for the key.
      *
@@ -613,6 +614,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 获取键值对
      * Implements Map.get and related methods.
      *
      * @param hash hash for key
@@ -621,25 +623,35 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final Node<K,V> getNode(int hash, Object key) {
         Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+        // table非空 和 table长度大于0 和 数组中hash后的索引位置上键值对不为null
+        // 则继续查询否则返回直接返回null
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (first = tab[(n - 1) & hash]) != null) {
+            // 检查hash和key是否相等
             if (first.hash == hash && // always check first node
                 ((k = first.key) == key || (key != null && key.equals(k))))
+                // 一致则返回该键值对
                 return first;
+            // 是否有next键值对
             if ((e = first.next) != null) {
+                // 如果first是TreeNode类型则去树中获取
                 if (first instanceof TreeNode)
                     return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+                // 否则循环链表
                 do {
+                    // 等同条件判断
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
                         return e;
                 } while ((e = e.next) != null);
             }
+            // 没有也返回null
         }
         return null;
     }
 
     /**
+     * 返回是否存在key
      * Returns {@code true} if this map contains a mapping for the
      * specified key.
      *
@@ -675,7 +687,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param hash hash for key
      * @param key the key
      * @param value the value to put
-     * true时不替换同key的value，否则替换
+     * true-节点value不为null时不替换，为null也会替换 false-不管value如何都会替换
      * @param onlyIfAbsent if true, don't change existing value
      * false时代表当前map处于初始化阶段
      * @param evict if false, the table is in creation mode.
@@ -702,43 +714,53 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 // 用于后续替换value
                 e = p;
-            // 不同节点，且是TreeNode
+            // 不同键值对，且是TreeNode
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
             // 不同节点，普通Node
             else {
-                // 循环，为了判断同hash下共有多少节点，用于判断是否达到树化阈值
+                // 循环，为了判断同hash下共有多少键值对，用于判断是否达到树化阈值
+                // 也为了判断是否存在同hash和同key键值对
                 for (int binCount = 0; ; ++binCount) {
-                    // 首先获取next节点
-                    // 为null的话意为链表
+                    // 首先获取next键值对
+                    // 为null的话意为链表/树到底了
                     if ((e = p.next) == null) {
+                        // 新建键值对
                         p.next = newNode(hash, key, value, null);
+                        // 因为binCount是从0开始，所以到7就已经是8个键值对了，所以需要阈值-1来判断
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                             treeifyBin(tab, hash);
                         break;
                     }
+                    // 与上面判断一致，同键值对跳出循环后替换value
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
                         break;
+                    // 键值对交替
                     p = e;
                 }
             }
+            // 存在相同键值对
             if (e != null) { // existing mapping for key
                 V oldValue = e.value;
+                // 根据onlyIfAbsent判断是否需要替换value
                 if (!onlyIfAbsent || oldValue == null)
                     e.value = value;
                 // 数据访问后供继承函数调用
                 afterNodeAccess(e);
+                // 返回旧键值对value
                 return oldValue;
             }
         }
         // map结构变化次数+1
         ++modCount;
+        // 总键值对数+1，后如果大于键值对数阈值
         if (++size > threshold)
+            // 进行resize
             resize();
         // 数据插入后供继承函数调用
         afterNodeInsertion(evict);
-        // 返回null意为该索引位置上本不存在节点
+        // 返回null意为该索引位置上本不存在键值对
         return null;
     }
 
@@ -793,7 +815,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         @SuppressWarnings({"rawtypes","unchecked"})
         // 以新的capacity建立一个数组
         Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
-        // 马上更新当前map的数组引用
+        // 马上更新当前map的数组引用，意味着新增的数据将直接添加到新数组中
         table = newTab;
         // 数据搬迁，把该节点下关联的所有元素进行分拆，安排到不同的位置上（可能）
         if (oldTab != null) {
@@ -906,6 +928,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 移除键值对并返回value
      * Removes the mapping for the specified key from this map if present.
      *
      * @param  key key whose mapping is to be removed from the map
@@ -921,10 +944,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 移除键值对并返回该键值对
      * Implements Map.remove and related methods.
      *
      * @param hash hash for key
      * @param key the key
+     * value不为null则会增加匹配value，否则忽略value匹配
      * @param value the value to match if matchValue, else ignored
      * @param matchValue if true only remove if value is equal
      * @param movable if false do not move other nodes while removing
@@ -933,9 +958,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
+        // 确认键值对是否存在
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
+            // 检查
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 node = p;
