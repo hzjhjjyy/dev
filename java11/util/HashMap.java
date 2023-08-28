@@ -928,7 +928,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * 移除键值对并返回value
+     * 移除键值对并返回value，默认remove方法不匹配value
      * Removes the mapping for the specified key from this map if present.
      *
      * @param  key key whose mapping is to be removed from the map
@@ -958,18 +958,21 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
         Node<K,V>[] tab; Node<K,V> p; int n, index;
-        // 确认键值对是否存在
+        // 确认hash映射到数组中是否存在键值对
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
-            // 检查
+            // 检查hash和key是否一致
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 node = p;
+            // 循环链表或树
             else if ((e = p.next) != null) {
                 if (p instanceof TreeNode)
+                    // 树查找
                     node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
                 else {
+                    // 链表查找
                     do {
                         if (e.hash == hash &&
                             ((k = e.key) == key ||
@@ -981,6 +984,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     } while ((e = e.next) != null);
                 }
             }
+            // 找到了键值对且value相同
             if (node != null && (!matchValue || (v = node.value) == value ||
                                  (value != null && value.equals(v)))) {
                 if (node instanceof TreeNode)
@@ -995,6 +999,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 return node;
             }
         }
+        // 没有匹配到任何键值对直接返回null
         return null;
     }
 
