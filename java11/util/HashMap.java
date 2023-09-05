@@ -984,12 +984,15 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     } while ((e = e.next) != null);
                 }
             }
-            // 找到了键值对且value相同
+            // 找到了键值对或还需要对比value
             if (node != null && (!matchValue || (v = node.value) == value ||
                                  (value != null && value.equals(v)))) {
+                // 若是TreeNode，调用TreeNode删除
                 if (node instanceof TreeNode)
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
+                // 若该键值对是数组上的键值对，也就是链表或树的首节点
                 else if (node == p)
+                    // 
                     tab[index] = node.next;
                 else
                     p.next = node.next;
