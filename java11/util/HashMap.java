@@ -439,7 +439,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     transient int size;
 
     /**
-     * hashmap结构变化时会+1，就是对key进行增删时就会+1
+     * hashmap结构变化时会+1，就是对键值对进行增删时就会+1
+     * 不会计算每个键值对的变化情况，只要方法会修改结构就+1
      * 还用于在循环时用于判断是否存在结构变化，若有变动则快速失败
      * The number of times this HashMap has been structurally modified
      * Structural modifications are those that change the number of mappings in
@@ -957,10 +958,12 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
+                         // Node p或p.next代表指向Node node的键值对
         Node<K,V>[] tab; Node<K,V> p; int n, index;
-        // 确认hash映射到数组中是否存在键值对
+        // 确认hash映射到数组中是否存在键值对，这是首节点
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
+            // Node node 代表找到的键值对
             Node<K,V> node = null, e; K k; V v;
             // 检查hash和key是否一致
             if (p.hash == hash &&
@@ -980,6 +983,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                             node = e;
                             break;
                         }
+                        // 记录指向e也就是node
                         p = e;
                     } while ((e = e.next) != null);
                 }
@@ -992,13 +996,18 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
                 // 若该键值对是数组上的键值对，也就是链表或树的首节点
                 else if (node == p)
-                    // 
+                    // 则数组首节点指向该键值对的next节点
                     tab[index] = node.next;
                 else
+                    // 原始:p.next->node 后:p.next->node.next 等于把node去掉
                     p.next = node.next;
+                // 结构变化+1
                 ++modCount;
+                // 键值对数量-1
                 --size;
+                // 移除键值对后调用方法
                 afterNodeRemoval(node);
+                // 返回找到的Node
                 return node;
             }
         }
@@ -1007,6 +1016,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 清空Map，
      * Removes all of the mappings from this map.
      * The map will be empty after this call returns.
      */
