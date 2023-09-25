@@ -835,7 +835,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     // 有下一节点且为链表，对链表进行拆分
                     else { // preserve order
-                        // 只需要两条链是因为在新数组中的索引位置不是原位就是原位*2
+                        // 只需要两条链是因为在新数组中的索引位置不是原位就是原位+oldCap
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
@@ -1257,6 +1257,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 解释待定
      * {@inheritDoc}
      *
      * <p>This method will, on a best-effort basis, throw a
@@ -1269,6 +1270,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     @Override
     public V computeIfAbsent(K key,
                              Function<? super K, ? extends V> mappingFunction) {
+        // 生成方法为空抛错
         if (mappingFunction == null)
             throw new NullPointerException();
         int hash = hash(key);
@@ -1276,6 +1278,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int binCount = 0;
         TreeNode<K,V> t = null;
         Node<K,V> old = null;
+        // 如果
         if (size > threshold || (tab = table) == null ||
             (n = tab.length) == 0)
             n = (tab = resize()).length;
@@ -1323,6 +1326,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
+     * 待定解释
      * {@inheritDoc}
      *
      * <p>This method will, on a best-effort basis, throw a
