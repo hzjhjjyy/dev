@@ -1257,9 +1257,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * 解释待定
      * {@inheritDoc}
-     *
+     * 
      * <p>This method will, on a best-effort basis, throw a
      * {@link ConcurrentModificationException} if it is detected that the
      * mapping function modifies this map during computation.
@@ -1270,7 +1269,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     @Override
     public V computeIfAbsent(K key,
                              Function<? super K, ? extends V> mappingFunction) {
-        // 生成方法为空抛错
+        // 计算方法为空抛错
         if (mappingFunction == null)
             throw new NullPointerException();
         int hash = hash(key);
@@ -1278,7 +1277,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int binCount = 0;
         TreeNode<K,V> t = null;
         Node<K,V> old = null;
-        // 如果
+        // 如果键值对数量大于键值对阈值 或 map未初始化 或 数组长度为0
         if (size > threshold || (tab = table) == null ||
             (n = tab.length) == 0)
             n = (tab = resize()).length;
