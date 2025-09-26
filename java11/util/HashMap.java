@@ -2347,6 +2347,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
+         * 
          * Splits nodes in a tree bin into lower and upper tree bins,
          * or untreeifies if now too small. Called only from resize;
          * see above discussion about split bits and indices.
