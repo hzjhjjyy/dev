@@ -688,7 +688,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @param hash hash for key
      * @param key the key
      * @param value the value to put
-     * true-节点value不为null时不替换，为null也会替换 false-不管value如何都会替换
+     * true-原节点value不为null时不替换，为null也会替换 false-不管value如何都会替换
      * @param onlyIfAbsent if true, don't change existing value
      * false时代表当前map处于初始化阶段
      * @param evict if false, the table is in creation mode.
@@ -715,13 +715,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 // 用于后续替换value
                 e = p;
-            // 不同键值对，且是TreeNode
+            // 不同键，且是TreeNode
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
-            // 不同节点，普通Node
+            // 不同键，普通Node
             else {
-                // 循环，为了判断同hash下共有多少键值对，用于判断是否达到树化阈值
-                // 也为了判断是否存在同hash和同key键值对
+                // 循环，为了判断同索引位置下共有多少键值对，同时用于判断是否达到树化阈值
+                // 也为了判断是否同索引位置下存在同hash和同key键值对
                 for (int binCount = 0; ; ++binCount) {
                     // 首先获取next键值对
                     // 为null的话意为链表/树到底了
