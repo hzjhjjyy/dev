@@ -49,7 +49,7 @@ import jdk.internal.misc.SharedSecrets;
  * structures are rebuilt) so that the hash table has approximately twice the
  * number of buckets.
  *
- * 0.75的factor是作为空间与时间权衡的最好选择
+ * 0.75的factor是作为空间与时间权衡的好选择
  * 在可预估的情况下，若收纳的元素一直比factor比例的元素个数都要小，那rehash是不会出现的
  * <p>As a general rule, the default load factor (.75) offers a good
  * tradeoff between time and space costs.  Higher values decrease the
